@@ -33,7 +33,7 @@ class RESTDatabase{
   }
 
   public function get($url){
-    return $this->send('GET', $url, '');
+    return $this->parseObject($this->send('GET', $url, ''));
   }
 
   public function post($object){
@@ -57,6 +57,34 @@ class RESTDatabase{
     $url = $this->baseUrl . $object->_id;
     $url .= isset($object->_rev) ? "?rev=" . $object->_rev : "";
     return $this->send('DELETE', $url, '');
+  }
+
+  private function parseObject($object)
+  {
+    if(!isset($object) || !property_exists($object, "rows"))
+      return $object;
+    $rows = $object->rows;
+    $result = new stdClass();
+
+    if(property_exists($object, "_id")) $result->_id = $object->_id;
+    if(property_exists($object, "_rev")) $result->_rev = $object->_rev;
+	  foreach($rows as $row)
+	  {
+			$current = $result;
+			foreach($row->key as $k){
+				if(!property_exists($current, $k))
+				  $current->$k = new stdClass();
+				$current = $current->$k;
+			}
+
+		  foreach($row->value as $k => $v)
+		  {
+		    if(!property_exists($current, $k))
+		      $current->$k = array();
+		    array_push($current->$k, $v);
+      }
+		}
+		return $result;
   }
 }
 ?>
