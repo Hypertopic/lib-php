@@ -1,40 +1,35 @@
 <?php
+require_once 'RESTDatabase.php';
+
 class HypertopicMap{
+  private $db;
 
-  public function send($action, $url, $body)
-  {
-    $action = ($action) ? strtoupper($action) : "GET";
-    $headers = array('Content-type: application/json', "Accept: application/json");
-    if(strlen($body) > 0)
-      array_push($headers, "Content-length: ". strlen($body));
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $action);
-    curl_setopt($ch, CURLOPT_ENCODING, "gzip" );
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30 );
-    curl_setopt($ch, CURLOPT_URL, $url );
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-    $response = curl_exec( $ch );
-    $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if(substr($status_code, 0, 1) != "2")
-      return false;
-
-    return (strlen($response) > 0) ? json_decode($response) : true;
+  public function __construct($baseUrl) {
+  	$this->db = new RESTDatabase($baseUrl);
   }
 
   public function getUser($UserID){
-    return new User($UserID);
+    return new User($UserID, $this);
+  }
+
+  public function getCorpus($CorpusID){
+    return $CorpusID;
+  }
+
+  public function getViewpoint($ViewpointID){
+    return $ViewpointID;
   }
 }
 
-class Identified{
+abstract class Identified{
   private $id;
+  private $db;
+  private $map;
 
-  public function __construct($id) {
+  public function __construct($id, $map) {
   	$this->id = $id;
+  	$this->db = $map->db;
+  	$this->map = $map;
   }
 
   public function getID() {
@@ -48,12 +43,6 @@ class Identified{
 
   public function hashCode() {
   	return spl_object_hash($this);
-  }
-}
-
-class User extends Identified {
-  public function __construct($id) {
-  	parent::__construct(id);
   }
 }
 
@@ -86,4 +75,3 @@ abstract class Named extends Identified {
   }
 
 }*/
-?>

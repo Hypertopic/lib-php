@@ -102,4 +102,3 @@ class RESTDatabase{
 		return $result;
   }
 }
-?>
