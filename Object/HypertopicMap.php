@@ -48,30 +48,65 @@ abstract class Identified{
 
 abstract class Named extends Identified {
 
-  public function __construct($id) {
-  	parent::__construct(id);
+  public function __construct($id, $map) {
+  	parent::__construct($id,$map);
   }
 
   protected abstract function getView();
 
   public function getName(){
-  	$obj = $this.getView();
+  	$obj = $this->getView();
   	return $obj->name;
   }
 }
 
-/*public abstract class Located extends Named {
+abstract class Located extends Named {
 
-  public function __construct($id) {
-  	parent::__construct(id);
+  public function __construct($id, $map) {
+  	parent::__construct($id,$map);
   }
 
   protected function getRaw(){
-  	return this.db.get(this.getID());
+  	return $this->db->get($this->getID());
   }
 
-  public void destroy() throws Exception {
-  	HypertopicMap.this.db.delete(this.getRaw());
+  public function destroy(){
+  	$this->db->delete($this->getRaw());
+  }
+}
+
+abstract class Registered extends Located {
+
+  public function __construct($id, $map) {
+  	parent::__construct($id,$map);
   }
 
-}*/
+  public function register($user){
+    $raw = $this->getRaw();
+    $userID = (is_string($user)) ? $user : $user->getID();
+    if(!property_exists($raw, "users"))
+      $raw->users = array();
+    array_push($raw->users, $userID);
+  	$this->db->put($raw);
+  }
+
+  public function unregister($user){
+  	$raw = $this->getRaw();
+  	$userID = (is_string($user)) ? $user : $user->getID();
+  	if(property_exists($raw, "users"))
+  	{
+  	  $found = false;
+  	  for($i=0; $i < count($raw->users); $i++)
+  	    if($userID == $raw->users[$i])
+  	    {
+  	      $found = true;
+  	      array_splice($raw->users, $i, 1);
+  	      $i--;
+  	    }
+
+  	  if($found)
+  	    $this->db->put($raw);
+    }
+  }
+
+}

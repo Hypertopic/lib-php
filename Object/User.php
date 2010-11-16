@@ -1,5 +1,4 @@
 <?php
-
 class User extends Identified {
   public function __construct($id, $map) {
   	parent::__construct($id, $map);
