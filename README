@@ -1,0 +1,12 @@
+Install Apache2 and PHP
+
+apt-get install apache2 php5 libapache2-mod-php5
+
+Install curl support for PHP
+apt-get install curl libcurl3 libcurl3-dev php5-curl php5-mcrypt
+
+Install memcache for PHP
+apt-get install php5-memcache
+
+Restart Apache2
+/etc/init.d/apache2 restart

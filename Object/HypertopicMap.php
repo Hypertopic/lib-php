@@ -1,7 +1,7 @@
 <?php
 class HypertopicMap{
 
-  public function httpSend($action, $url, $body)
+  public function send($action, $url, $body)
   {
     $action = ($action) ? strtoupper($action) : "GET";
     $headers = array('Content-type: application/json', "Accept: application/json");
@@ -43,7 +43,7 @@ class Identified{
 
   public function equals($that) {
   	return is_a($that, "Identified")
-  		&& $this->id == $that->id);
+  		&& $this->id == $that->id;
   }
 
   public function hashCode() {
@@ -57,7 +57,7 @@ class User extends Identified {
   }
 }
 
-public abstract class Named extends Identified {
+abstract class Named extends Identified {
 
   public function __construct($id) {
   	parent::__construct(id);
