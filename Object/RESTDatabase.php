@@ -1,8 +1,10 @@
 <?php
 class RESTDatabase{
   private $baseUrl;
+  private $memcache;
 
   public function __construct($baseUrl) {
+    $this->memcache = @memcache_connect('127.0.0.1', 11211);
   	$this->baseUrl = $baseUrl;
   }
 
@@ -29,10 +31,23 @@ class RESTDatabase{
     if(substr($status_code, 0, 1) != "2")
       throw new Exception("$action $url \n$body", $status_code);
 
+    if($action != "GET" && $this->memcache !== false)
+      $this->memcache->flush();
+
     return (strlen($response) > 0) ? json_decode($response) : true;
   }
 
   public function get($url){
+    if($this->memcache !== false)
+    {
+      $result = $this->memcache->get($url);
+      if($result === false)
+      {
+        $result = $this->parseObject($this->send('GET', $url, ''));
+        $this->memcache->set($url, $result);
+      }
+      return $result;
+    }
     return $this->parseObject($this->send('GET', $url, ''));
   }
 
