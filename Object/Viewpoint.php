@@ -33,15 +33,18 @@ class Viewpoint extends Registered {
     $view = $this->getView();
     foreach($view as $k => $v)
       if(!in_array($k, $this->isReserved))
-        array_push($result, $this->getTopic($v));
+        array_push($result, $this->getTopic($k));
   	return $result;
   }
 
   public function getItems(){
   	$result = array();
   	$topics = $this->getTopics();
-  	foreach ($topics as $topic) {
-  		array_push($result, $topic->getItems());
+  	foreach ($topics as $topic)
+  	{
+  	  $items = $topic->getItems();
+  	  foreach($items as $item)
+  		  array_push($result, $item);
   	}
   	return $result;
   }
@@ -53,27 +56,39 @@ class Viewpoint extends Registered {
   	return $view->user;
   }
 
-  public function createTopic($broaderTopics){
+  public function createTopic($broaderTopics = null){
   	$topicID = HypertopicMap::getGUID();
   	$viewpoint = $this->getRaw();
   	$broader = array();
-  	foreach($broaderTopics as $topic)
-  	  if(is_string($topic))
-  	    array_push($broader, $topic);
-  	  else
-  	    array_push($broader, $topic->getID());
+  	if(isset($broaderTopics))
+  	{
+  	  if(is_string($broaderTopics))
+    	    array_push($broader, $broaderTopics);
+    	else
+    	  if(is_array($broaderTopics))
+    	    foreach($broaderTopics as $topic)
+    	      array_push($broader, $topic->getID());
+    	  else
+    	    array_push($broader, $broaderTopics->getID());
+    }
   	if(!property_exists($viewpoint, "topics"))
   	  $viewpoint->topics = new stdClass;
   	$viewpoint->topics->$topicID = new stdClass;
   	$viewpoint->topics->$topicID->broader = $broader;
-  	$this->db->put($viewpoint);
+  	$result = $this->db->put($viewpoint);
   	return $this->getTopic($topicID);
   }
 
   public function getTopic($topic) {
     if(is_string($topic))
-  	  return new Topic($topic, $this);
+    {
+      $topic = new Topic($topic, $this);
+  	  return $topic;
+  	}
   	else
-  	  return new Topic($topic->getID(), $this);
+  	{
+  	  $id = isset($topic->id) ? $topic->id : $topic->getID();
+  	  return new Topic($id, $this);
+  	}
   }
 }

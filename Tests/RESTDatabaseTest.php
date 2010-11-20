@@ -3,17 +3,15 @@ require_once 'Object/RESTDatabase.php';
 
 class RESTDatabaseTest extends PHPUnit_Framework_TestCase
 {
-  private $db;
+  private static $db;
 
-  protected function setUp()
+  public static function setUpBeforeClass()
   {
-    $this->db = new RESTDatabase("http://192.168.1.141:5984/argos/");
-    print "\n". __METHOD__ . "\n";
+    self::$db = new RESTDatabase("http://192.168.1.141:5984/argos/_design/argos/_rewrite/");
   }
 
-  protected function tearDown()
+  public static function tearDownAfterClass()
   {
-    print __METHOD__ . "\n";
   }
 
   public function testPost()
@@ -32,7 +30,7 @@ class RESTDatabaseTest extends PHPUnit_Framework_TestCase
       $row->value = array("attribute0" => "value1");
       array_push($obj->rows, $row);
 
-      $obj = $this->db->post($obj);
+      $obj = self::$db->post($obj);
       $this->assertObjectHasAttribute("_id", $obj);
       $this->assertObjectHasAttribute("name", $obj);
       return $obj;
@@ -49,7 +47,7 @@ class RESTDatabaseTest extends PHPUnit_Framework_TestCase
   {
     try{
       $obj->name = "updated";
-      $result = $this->db->put($obj);
+      $result = self::$db->put($obj);
       $this->assertObjectHasAttribute("_id", $result);
       $this->assertEquals("updated", $result->name);
       return $result;
@@ -64,7 +62,7 @@ class RESTDatabaseTest extends PHPUnit_Framework_TestCase
   public function testGet($obj)
   {
     try{
-      $result = $this->db->get($obj->_id);
+      $result = self::$db->get($obj->_id);
       $this->assertObjectHasAttribute("key0", $result);
     }catch(Exception $e){
       $this->fail($e->getMessage());
@@ -77,7 +75,7 @@ class RESTDatabaseTest extends PHPUnit_Framework_TestCase
   public function testDelete($obj)
   {
     try{
-      $result = $this->db->delete($obj);
+      $result = self::$db->delete($obj);
       $this->assertObjectHasAttribute("ok", $result);
     }catch(Exception $e){
       $this->fail($e->getMessage());

@@ -4,7 +4,7 @@ class RESTDatabase{
   private $memcache;
 
   public function __construct($baseUrl) {
-    $this->memcache = @memcache_connect('127.0.0.1', 11211);
+    //$this->memcache = @memcache_connect('127.0.0.1', 11211);
   	$this->baseUrl = $baseUrl;
   }
 
@@ -14,7 +14,6 @@ class RESTDatabase{
     $headers = array('Content-type: application/json', "Accept: application/json");
     if(strlen($body) > 0)
       array_push($headers, "Content-length: ". strlen($body));
-
     $url = (strpos($url, $this->baseUrl) === 0) ? $url : $this->baseUrl . $url;
 
     $ch = curl_init();
@@ -31,14 +30,14 @@ class RESTDatabase{
     if(substr($status_code, 0, 1) != "2")
       throw new Exception("$action $url \n$body", $status_code);
 
-    if($action != "GET" && $this->memcache !== false)
+    if($action != "GET" && isset($this->memcache) && $this->memcache !== false)
       $this->memcache->flush();
 
     return (strlen($response) > 0) ? json_decode($response) : true;
   }
 
   public function get($url){
-    if($this->memcache !== false)
+    if(isset($this->memcache) && $this->memcache !== false)
     {
       $result = $this->memcache->get($url);
       if($result === false)

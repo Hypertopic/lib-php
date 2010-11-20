@@ -51,7 +51,7 @@ class HypertopicMap{
            .substr($charid,12, 4)
            .substr($charid,16, 4)
            .substr($charid,20,12);
-    return $uuid;
+    return strtolower($uuid);
   }
 }
 
@@ -90,7 +90,7 @@ abstract class Named extends Identified {
 
   public function getName(){
   	$obj = $this->getView();
-  	return $obj->name;
+  	return is_array($obj->name) ? $obj->name[0] : $obj->name;
   }
 }
 
@@ -100,7 +100,7 @@ abstract class Located extends Named {
   	parent::__construct($id,$map);
   }
 
-  protected function getRaw(){
+  public function getRaw(){
   	return $this->db->get($this->getID());
   }
 

@@ -37,13 +37,13 @@ class Corpus extends Registered {
     foreach($view as $k => $v)
     {
       if(!in_array($k, $this->isReserved))
-        array_push($result, $this->getItem($v));
+        array_push($result, $this->getItem($k));
     }
     return $result;
   }
 
   public function getItem($itemID){
-  	return new Item($itemID, $this);
+    return new Item($itemID, $this);
   }
 
   public function createItem($name){

@@ -1,7 +1,7 @@
 <?php
 class Item extends Located {
   private $Corpus;
-  private $isReserved = array("highlight", "name", "resource", "thumbnail", "topic", "upper", "user","item_name", "item_corpus");
+  private $isReserved = array("_id", "_rev", "highlight", "name", "resource", "thumbnail", "topic", "upper", "user","item_name", "item_corpus");
 
   public function __construct($id, $Corpus) {
     $this->Corpus = $Corpus;
@@ -28,8 +28,11 @@ class Item extends Located {
 
   public function getResource(){
     $view = $this->getView();
-    if(property_exists($view, $id))
-	    return (string) $view->resource;
+    if(property_exists($view, "resource"))
+    {
+      $resources = $view->resource;
+	    return is_array($resources) ? $resources[0][0] : $resources;
+	  }
 		return false;
   }
 
@@ -53,10 +56,10 @@ class Item extends Located {
 
   public function getAttributes(){
     $result = array();
-    $view = $this->getView();
+    $view = $this->getRaw();
     foreach($view as $k => $v)
       if(!in_array($k, $this->isReserved))
-        $result[$k]=$v;
+        array_push($result, array($k=>$v));
     return $result;
   }
 
@@ -75,17 +78,18 @@ class Item extends Located {
 
     if(in_array($value, $item->$attribute))
     {
-      if(count($item->$attribute) == 0)
+      if(count($item->$attribute) == 1)
         unset($item->$attribute);
       else
-      {
         for($i=0; $i<count($item->$attribute); $i++)
-          if($item->$attribute[$i] == $value)
+        {
+          $attributes = $item->$attribute;
+          if($attributes[$i] == $value)
           {
             array_splice($item->$attribute, $i, 1);
             $i--;
           }
-      }
+        }
       $this->db->put($item);
     }
   }

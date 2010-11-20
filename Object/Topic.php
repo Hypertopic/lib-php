@@ -8,7 +8,7 @@ class Topic extends Named {
   	parent::__construct($id, $viewpoint->map);
   }
 
-  protected function getViewpointID() {
+  public function getViewpointID() {
   	return $this->Viewpoint->getID();
   }
 
