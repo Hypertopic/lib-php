@@ -43,7 +43,7 @@ class Corpus extends Registered {
   }
 
   public function getItem($itemID){
-  	return new Item($itemID, $this->map);
+  	return new Item($itemID, $this);
   }
 
   public function createItem($name){
