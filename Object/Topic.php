@@ -27,7 +27,7 @@ class Topic extends Named {
   	$this->db->put($viewpoint);
   }
 
-  public void destroy(){
+  public function destroy(){
     $viewpoint = $this->Viewpoint->getRaw();
     $id = $this->getID();
     unset($viewpoint->$id);
@@ -49,70 +49,82 @@ class Topic extends Named {
   	$this->db->put($viewpoint);
   }
 
-public Collection<Topic> getNarrower(){
-	Collection<Topic> result = new ArrayList<Topic>();
-	for (JSONObject narrower:this.getView().getAllJSONObjects("narrower")) {
-		result.add(Viewpoint.this.getTopic(narrower));
-	}
-	return result;
-}
+  public function getNarrower(){
+  	$result = array();
+  	$view = $this->getView();
+  	if(!property_exists($view, "narrower"))
+  	  return $result;
+  	foreach($view->narrower as $topic)
+  	  array_push($result, $this->getTopic($topic));
+  	return $result;
+  }
 
-public Collection<Topic> getBroader(){
-	Collection<Topic> result = new ArrayList<Topic>();
-	for (JSONObject broader : this.getView().getAllJSONObjects("broader")) {
-		result.add(Viewpoint.this.getTopic(broader));
-	}
-	return result;
-}
+  public function getBroader(){
+    $result = array();
+  	$view = $this->getView();
+  	if(!property_exists($view, "broader"))
+  	  return $result;
+  	foreach($view->narrower as $topic)
+  	  array_push($result, $this->getTopic($topic));
+  	return $result;
+  }
 
-/**
- * Recursive. Could be optimized with a cache.
- * Precondition: narrower topics graph must be acyclic.
- */
-public Collection<Corpus.Item> getItems(){
-	Collection<Corpus.Item> result = new HashSet<Corpus.Item>();
-	JSONObject topic = this.getView();
-	for (JSONObject item : topic.getAllJSONObjects("item")) {
-		result.add(
-			HypertopicMap.this.getItem(item)
-		);
-	}
-	for (JSONObject narrower : topic.getAllJSONObjects("narrower")) {
-		result.addAll(
-			Viewpoint.this.getTopic(narrower)
-				.getItems()
-		);
-	}
-	return result;
-}
+  /**
+   * Recursive. Could be optimized with a cache.
+   * Precondition: narrower topics graph must be acyclic.
+   */
+  public function getItems(){
+    $result = array();
+  	$topic = $this->getView();
+  	if(property_exists($topic, "item"))
+  	  foreach($topic->item as $item)
+  	    array_push($result, $this->map->getItem($item));
+    if(property_exists($topic, "narrower"))
+  	  foreach($topic->narrower as $narrower)
+  	  {
+  	    $t = $this->Viewpoint->getTopic($narrower);
+  	    $items = $t->getItems();
+  	    foreach($items as $item)
+  	      array_push($result, $this->map->getItem($item));
+  	  }
+  	return $result;
+  }
 
-public void moveTopics(Topic... narrowerTopics){
-	JSONArray broader = new JSONArray();
-	broader.put(this.getID());
-	JSONObject viewpoint = Viewpoint.this.getRaw();
-	JSONObject topics = viewpoint.getJSONObject("topics");
-	for (Topic t : narrowerTopics) {
-		topics.getJSONObject(t.getID()).put("broader", broader);
-	}
-	HypertopicMap.this.db.put(viewpoint);
-}
+  public function moveTopics($narrowerTopics){
+  	$broader = array();
+  	array_push($broader, $this->getID());
+  	$viewpoint = $this->Viewpoint->getRaw();
+  	if(!property_exists($viewpoint, "topics")) return;
+  	$topics = &$viewpoint->topics;
+  	foreach($narrowerTopics as $t)
+  	{
+  	  $topicID = (is_string($t)) ? $t : $t->getID();
+  	  $topics->$topicID->broader = $broader;
+  	}
+  	$this->db->put($viewpoint);
+  }
 
-/**
- * Unlink from broader topics
- */
-public void unlink(){
-	JSONObject viewpoint = Viewpoint.this.getRaw();
-	viewpoint.getJSONObject("topics")
-		.getJSONObject(this.getID())
-		.put("broader", new JSONArray());
-	HypertopicMap.this.db.put(viewpoint);
-}
+  /**
+   * Unlink from broader topics
+   */
+  public function unlink(){
+  	$viewpoint = $this->Viewpoint->getRaw();
+  	if(!property_exists($viewpoint, "topics")) return;
+  	$id = $this->getID();
+  	$viewpoint->topics->$id->broader = array();
+  	$this->db->put($viewpoint);
+  }
 
-public void linkTopics(Topic... narrowerTopics){
-	JSONObject viewpoint = Viewpoint.this.getRaw();
-	JSONObject topics = viewpoint.getJSONObject("topics");
-	for (Topic t : narrowerTopics) {
-		topics.getJSONObject(t.getID()).append("broader", this.getID());
-	}
-	HypertopicMap.this.db.put(viewpoint);
+  public function linkTopics($narrowerTopics){
+  	$viewpoint = $this->Viewpoint->getRaw();
+  	if(!property_exists($viewpoint, "topics")) return;
+
+  	foreach($narrowerTopics as $t) {
+  	  $id = (is_string($t)) ? $t : $t->getID();
+  		$broader = isset($viewpoint->topics->$id->broader) ? $viewpoint->topics->$id->broader : array();
+  		array_push($broader, $this->getID());
+  		$viewpoint->topics->$id->broader = $broader;
+  	}
+  	$this->db->put($viewpoint);
+  }
 }

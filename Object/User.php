@@ -1,6 +1,8 @@
 <?php
 class User extends Identified {
+  public $db;
   public function __construct($id, $map) {
+    $this->db = $map->db;
   	parent::__construct($id, $map);
   }
 
@@ -19,11 +21,10 @@ class User extends Identified {
   }
 
   public function listViewpoints(){
-    $viewpoints = array();
   	$view = $this->getView();
   	if(property_exists($view, "viewpoint"))
   	  return $view->viewpoint;
-  	return $viewpoints;
+  	return array();
   }
 
   public function createCorpus($name){

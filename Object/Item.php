@@ -11,7 +11,7 @@ class Item extends Located {
   protected function getView(){
 	  $view = $this->Corpus->getView();
 	  $id = $this->getID();
-	  if(property_exists($view, $id)
+	  if(property_exists($view, $id))
 	    return $view->$id;
 		return false;
   }
@@ -55,8 +55,8 @@ class Item extends Located {
     $result = array();
     $view = $this->getView();
     foreach($view as $k => $v)
-      if(!in_array($this->isReserved, $k))
-        $result[$k]=>$v;
+      if(!in_array($k, $this->isReserved))
+        $result[$k]=$v;
     return $result;
   }
 

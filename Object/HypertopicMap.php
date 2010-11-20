@@ -1,8 +1,13 @@
 <?php
 require_once 'RESTDatabase.php';
+require_once 'Viewpoint.php';
+require_once 'Topic.php';
+require_once 'Corpus.php';
+require_once 'Item.php';
+require_once 'User.php';
 
 class HypertopicMap{
-  private $db;
+  public $db;
 
   public function __construct($baseUrl) {
   	$this->db = new RESTDatabase($baseUrl);
@@ -13,11 +18,30 @@ class HypertopicMap{
   }
 
   public function getCorpus($CorpusID){
-    return $CorpusID;
+    return new Corpus($CorpusID, $this);
   }
 
   public function getViewpoint($ViewpointID){
-    return $ViewpointID;
+    return new Viewpoint($ViewpointID, $this);
+  }
+
+  public function getTopic($topic){
+  	$viewpoint = $this->getViewpoint($topic->viewpoint);
+    return $viewpoint->getTopic($topic);
+  }
+
+  public function getItem($arg){
+    if(is_string($arg))
+    {
+      $resource = $this->db->get("resource/" + rawurlencode($arg));
+  	  $resource = $resource->$arg;
+  	  return $resource->item;
+  	}
+  	else
+  	{
+  	  $corpus = $this->getCorpus($arg->corpus);
+  	  return $corpus->getItem($arg->id);
+  	}
   }
 
   public static function getGUID(){
@@ -32,9 +56,9 @@ class HypertopicMap{
 }
 
 abstract class Identified{
-  private $id;
-  private $db;
-  private $map;
+  public $id;
+  public $db;
+  public $map;
 
   public function __construct($id, $map) {
   	$this->id = $id;
@@ -118,4 +142,8 @@ abstract class Registered extends Located {
   	    $this->db->put($raw);
     }
   }
+}
+
+function j($resource){
+  echo json_encode($resource) . "\n";
 }

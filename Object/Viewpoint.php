@@ -32,7 +32,7 @@ class Viewpoint extends Registered {
     $result = array();
     $view = $this->getView();
     foreach($view as $k => $v)
-      if(!in_array($this->isReserved, $k))
+      if(!in_array($k, $this->isReserved))
         array_push($result, $this->getTopic($v));
   	return $result;
   }
@@ -76,3 +76,4 @@ class Viewpoint extends Registered {
   	else
   	  return new Topic($topic->getID(), $this);
   }
+}

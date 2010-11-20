@@ -19,11 +19,11 @@ class Corpus extends Registered {
   }
 
   public function destroy(){
-  	parent::destroy();
   	$items = $this->getItems();
   	foreach($items as $item) {
   		$item->destroy();
   	}
+  	parent::destroy();
   }
 
   public function listUsers(){
@@ -36,7 +36,7 @@ class Corpus extends Registered {
     $view = $this->getView();
     foreach($view as $k => $v)
     {
-      if(!in_array($this->isReserved, $k))
+      if(!in_array($k, $this->isReserved))
         array_push($result, $this->getItem($v));
     }
     return $result;
