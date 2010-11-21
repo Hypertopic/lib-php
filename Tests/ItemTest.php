@@ -25,8 +25,10 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   public static function tearDownAfterClass()
   {
-    /*if(isset(self::$corpus))
-      self::$corpus->destroy();*/
+    if(isset(self::$corpus))
+      self::$corpus->destroy();
+    if(isset(self::$viewpoint))
+      self::$viewpoint->destroy();
   }
 
   public function testGetCorpusID()
@@ -110,12 +112,11 @@ class ItemTest extends PHPUnit_Framework_TestCase
     try{
       self::$item->tag(self::$topic);
       self::$item->tag(self::$otherTopic);
-      j(self::$item->getRaw());
     }catch(Exception $e){
       $this->fail($e->getMessage());
       return;
     }
-    //$this->assertEquals(2, count(self::$item->getTopics()));
+    $this->assertEquals(2, count(self::$item->getTopics()));
   }
   /**
    * @depends testTag
@@ -128,6 +129,6 @@ class ItemTest extends PHPUnit_Framework_TestCase
       $this->fail($e->getMessage());
       return;
     }
-    //$this->assertEquals(1, count(self::$item->getTopics()));
+    $this->assertEquals(1, count(self::$item->getTopics()));
   }
 }

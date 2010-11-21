@@ -31,7 +31,7 @@ class Item extends Located {
     if(property_exists($view, "resource"))
     {
       $resources = $view->resource;
-	    return is_array($resources) ? $resources[0][0] : $resources;
+	    return is_array($resources) ? $resources[0] : $resources;
 	  }
 		return false;
   }
@@ -45,13 +45,13 @@ class Item extends Located {
 
   public function getTopics(){
     $view = $this->getView();
-    if(property_exists($view, "topic"))
+    if(!property_exists($view, "topic"))
       return array();
     $topics = $view->topic;
     $result = array();
     foreach($topics as $topic)
       array_push($result, $this->map->getTopic($topic));
-  	return result;
+  	return $result;
   }
 
   public function getAttributes(){
@@ -66,8 +66,12 @@ class Item extends Located {
   public function describe($attribute, $value){
   	$item = $this->getRaw();
   	if(!property_exists($item, $attribute))
-      $item->$attribute = array();
-  	array_push($item->$attribute, $value);
+      $item->$attribute = $value;
+    else
+      if(is_array($item->$attribute))
+  	    array_push($item->$attribute, $value);
+  	  else
+  	    $item->$attribute = array($item->$attribute, $value);
   	$this->db->put($item);
   }
 
@@ -75,12 +79,14 @@ class Item extends Located {
     $item = $this->getRaw();
   	if(!property_exists($item, $attribute))
       return true;
-
-    if(in_array($value, $item->$attribute))
+    if(is_string($item->$attribute))
     {
-      if(count($item->$attribute) == 1)
-        unset($item->$attribute);
-      else
+      unset($item->$attribute);
+      $this->db->put($item);
+    }
+    else
+      if(in_array($value, $item->$attribute))
+      {
         for($i=0; $i<count($item->$attribute); $i++)
         {
           $attributes = $item->$attribute;
@@ -90,19 +96,18 @@ class Item extends Located {
             $i--;
           }
         }
-      $this->db->put($item);
-    }
+        $this->db->put($item);
+      }
   }
 
   public function tag($topic){
   	$item = $this->getRaw();
   	if(!property_exists($item, "topics"))
-      $item->topics = array();
+      $item->topics = new stdClass;
     $topicID = $topic->getID();
     $obj = new stdClass;
-    $obj->$topicID = new stdClass;
-    $obj->$topicID->viewpoint = $topic->getViewpointID();
-  	array_push($item->topics, $obj);
+    $obj->viewpoint = $topic->getViewpointID();
+  	$item->topics->$topicID = $obj;
   	$this->db->put($item);
   }
 

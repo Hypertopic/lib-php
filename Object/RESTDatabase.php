@@ -4,7 +4,7 @@ class RESTDatabase{
   private $memcache;
 
   public function __construct($baseUrl) {
-    //$this->memcache = @memcache_connect('127.0.0.1', 11211);
+    $this->memcache = @memcache_connect('127.0.0.1', 11211);
   	$this->baseUrl = $baseUrl;
   }
 

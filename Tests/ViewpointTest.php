@@ -120,12 +120,11 @@ class ViewpointTest extends PHPUnit_Framework_TestCase
     }
     $this->assertEquals(2, count($topics));
   }
-  //TODO
+
   public function testGetItems()
   {
     try{
       self::$item->tag(self::$topic);
-      j(self::$item);
       $items = self::$viewpoint->getItems();
     }catch(Exception $e){
       $this->fail($e->getMessage());

@@ -30,22 +30,22 @@ class Topic extends Named {
   public function destroy(){
     $viewpoint = $this->Viewpoint->getRaw();
     $id = $this->getID();
-    unset($viewpoint->$id);
-    foreach($viewpoint as $k => $v)
+    foreach($viewpoint->topics as $k => $v)
     {
-      if(!property_exists("broader"))
+      if(!property_exists($v, "broader"))
         continue;
-      $broader = $viewpoint->$k->broader;
+      $broader = $viewpoint->topics->$k->broader;
       if(!in_array($id, $broader))
         continue;
       for($i=0; $i < count($broader); $i++)
         if($broader[$i] == $id)
         {
-          $broader.splice($i, 1);
+          array_splice($broader, $i, 1);
           $i--;
         }
-      $viewpoint->$k->broader = $broader;
+      $viewpoint->topics->$k->broader = $broader;
     }
+    unset($viewpoint->topics->$id);
   	$this->db->put($viewpoint);
   }
 
@@ -55,7 +55,7 @@ class Topic extends Named {
   	if(!property_exists($view, "narrower"))
   	  return $result;
   	foreach($view->narrower as $topic)
-  	  array_push($result, $this->getTopic($topic));
+  	  array_push($result, $this->Viewpoint->getTopic($topic));
   	return $result;
   }
 
@@ -64,8 +64,9 @@ class Topic extends Named {
   	$view = $this->getView();
   	if(!property_exists($view, "broader"))
   	  return $result;
-  	foreach($view->narrower as $topic)
-  	  array_push($result, $this->getTopic($topic));
+
+  	foreach($view->broader as $topic)
+  	  array_push($result, $this->Viewpoint->getTopic($topic));
   	return $result;
   }
 
@@ -78,14 +79,17 @@ class Topic extends Named {
   	$topic = $this->getView();
   	if(property_exists($topic, "item"))
   	  foreach($topic->item as $item)
-  	    array_push($result, $this->map->getItem($item));
+  	  {
+  	    $item = $this->map->getItem($item);
+  	    array_push($result, $item);
+  	  }
     if(property_exists($topic, "narrower"))
   	  foreach($topic->narrower as $narrower)
   	  {
   	    $t = $this->Viewpoint->getTopic($narrower);
   	    $items = $t->getItems();
   	    foreach($items as $item)
-  	      array_push($result, $this->map->getItem($item));
+  	      array_push($result, $item);
   	  }
   	return $result;
   }
@@ -96,11 +100,20 @@ class Topic extends Named {
   	$viewpoint = $this->Viewpoint->getRaw();
   	if(!property_exists($viewpoint, "topics")) return;
   	$topics = &$viewpoint->topics;
-  	foreach($narrowerTopics as $t)
-  	{
-  	  $topicID = (is_string($t)) ? $t : $t->getID();
-  	  $topics->$topicID->broader = $broader;
-  	}
+  	if(is_array($narrowerTopics))
+    	foreach($narrowerTopics as $t)
+    	{
+    	  $topicID = (is_string($t)) ? $t : $t->getID();
+    	  $topics->$topicID->broader = $broader;
+    	}
+    else
+      if(is_string($narrowerTopics))
+        $topics->$narrowerTopics->broader = $broader;
+      else
+      {
+        $topicID = $narrowerTopics->getID();
+        $topics->$topicID->broader = $broader;
+      }
   	$this->db->put($viewpoint);
   }
 
