@@ -1,5 +1,5 @@
 <?php
-require_once 'Object/HypertopicMap.php';
+require_once 'agorae/libs/HypertopicMap.php';
 
 class TopicTest extends PHPUnit_Framework_TestCase
 {

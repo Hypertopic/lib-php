@@ -1,5 +1,5 @@
 <?php
-require_once 'Object/RESTDatabase.php';
+require_once 'agorae/libs/RESTDatabase.php';
 
 class RESTDatabaseTest extends PHPUnit_Framework_TestCase
 {

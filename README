@@ -1,14 +1,57 @@
 Install Apache2 and PHP
-
-apt-get install apache2 php5 libapache2-mod-php5
+ apt-get install apache2 php5 libapache2-mod-php5
 
 Install curl support for PHP
-apt-get install curl libcurl3 libcurl3-dev php5-curl php5-mcrypt
+ apt-get install curl libcurl3 libcurl3-dev php5-curl php5-mcrypt
 
 Install memcache for PHP
-apt-get install memcached libevent-dev
-apt-get install libmemcached5 libmemcached-tools
-apt-get install php5-memcache
+ apt-get install memcached libevent-dev
+ apt-get install libmemcached5 libmemcached-tools
+ apt-get install php5-memcache
 
 Restart Apache2
-/etc/init.d/apache2 restart
+ /etc/init.d/apache2 restart
+
+Install Sun java
+ add-apt-repository ppa:sun-java-community-team/sun-java6
+ apt-get update
+ apt-get install sun-java6-jre sun-java6-jdk
+
+If you have other versions of Java installed, after the installation of Sun Java you need to choice a default one by:
+ update-alternatives --config java
+
+Install Maven
+ apt-get install maven2
+
+Install Git
+ apt-get install git-core
+
+Install CouchDB-Lucene
+Checkout the couchdb-lucene from its repository:
+ cd /var/tmp/
+ git clone git://github.com/rnewson/couchdb-lucene.git
+
+Build couchdb-lucene
+ cd couchdb-lucene
+ mvn
+
+Now there is a zip couchdb-lucene in the target/ directory. Decompress it and move it to /usr/local/
+ tar zxvf couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz
+ mv couchdb-lucene-0.6-SNAPSHOT /usr/local/couchdb-lucene
+
+Setting up CouchDB-Lucene
+ vi /etc/couchdb/local.ini
+
+With the following content:
+ [couchdb]
+ os_process_timeout=60000 ; increase the timeout from 5 seconds.
+
+ [external]
+ fti=/usr/bin/python /var/local/couchdb-lucene/tools/couchdb-external-hook.py
+
+ [httpd_db_handlers]
+ _fti = {couch_httpd_external, handle_external_req, <<"fti">>}
+
+Start CouchDB-Lucene
+ /usr/local/couchdb-lucene/bin/run
+
